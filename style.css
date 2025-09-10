@@ -1,7 +1,16 @@
+html {
+    overflow: hidden;
+}
+
 body {
     display: flex;
     justify-content: center;
     align-content: center;
+    flex-direction: column;
+    padding: 20%;
+    padding-top: 0;
+    text-align: center;
+    font-family: sans-serif;
 }
 
 canvas {
