@@ -143,6 +143,18 @@ function deadZone() {
     return previousDir.slice(-score, -1);
 }
 
+function setSpeed() {
+    // if(score < 20) {
+    //     speed = 5;
+    // } 
+    // else if(score < 40) {
+    //     speed = 10;
+    // }
+    // else if(score < 60) {
+    //     speed = 15;
+    // }
+}
+
 function gameLoop() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -161,6 +173,8 @@ function gameLoop() {
     // Get the tail
     generateTail();
 
+    setSpeed();
+
     // Check if apple collected
     if(movementX === coords[0] && movementY === coords[1]) {
         score += 1;
@@ -175,5 +189,28 @@ function gameLoop() {
     // Loop forever
     if(isDead() == false) {
         requestAnimationFrame(gameLoop);
+    }
+    else {
+        // Death Panel
+        ctx.fillStyle = "rgb(156, 156, 156, 0.9)";
+        ctx.fillRect(300, 200, canvas.width / 2, canvas.height / 2);
+        // Text objects
+        ctx.textAlign = "center";
+
+        ctx.font = "40px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText("YOU DIED!", 600, 275);
+
+        ctx.font = "20px Arial";
+        ctx.fillText("Your score was: " + score, 600, 325);
+
+        ctx.fillText("Press R to restart" , 600, 400);
+        
+        if (event.key === "r") {
+            movementX = 100;
+            movementY = 100;
+            score = 0;
+            dead = false;
+        }
     }
 }
