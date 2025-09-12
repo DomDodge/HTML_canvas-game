@@ -11,9 +11,9 @@ let tileSize = 50;
 let collected = false;
 let lastSpace = [200, 350];
 let coords = [800, 350];
-let previousDir = [[], [movementX - tileSize, movementY]];
+let previousDir = [[movementX - tileSize, movementY], [movementX - tileSize, movementY]];
 let nextDirQue = [];
-let score = 2;
+let score = 0;
 
 // Get Direction
 document.addEventListener('keydown', function(event) {
@@ -35,6 +35,19 @@ document.addEventListener('keydown', function(event) {
     // Go Up
     if((event.key === "w" || event.key === "ArrowUp") && direction != "down") {
         nextDirQue.push("up");
+    }
+
+    // Player Death
+    if(event.key === "r" && isDead()) {
+        movementX = 100;
+        movementY = 350;
+        speed = 5;
+        direction = "none";
+        coords = [800, 350];
+        previousDir = [[movementX - tileSize, movementY], [movementX - tileSize, movementY]];
+        collected = false;
+        score = 0;
+        gameLoop();
     }
 });
 
@@ -71,15 +84,15 @@ function isDead() {
         dead = true;
     }  
 
-    // deadList = deadZone();
-    // for (let i = 0; i < deadList.length; i++) {
-    //     let x = Math.round(movementX / tileSize) * tileSize;
-    //     let y = Math.round(movementY / tileSize) * tileSize;
+    deadList = deadZone();
+    for (let i = 0; i < deadList.length; i++) {
+         let x = Math.round(movementX / tileSize) * tileSize;
+         let y = Math.round(movementY / tileSize) * tileSize;
 
-    //     if(x === deadList[i][0] && y === deadList[i][1]) {
-    //         dead = true;
-    //     }
-    // }
+         if(x === deadList[i][0] && y === deadList[i][1]) {
+             dead = true;
+         }
+    }
 
     return dead;
 }
@@ -125,23 +138,28 @@ function storeDir() {
 
 function getImage(current, prev, next) {
     let file;
-    // console.log(current, prev, next);
-    if(current[0] === prev[0] && current[0] === next[0]) {
-        file = "images/body2.png";
-    }
-    else if (current[1] === prev[1] && current[1] === next[1]) {
+    // Straight horizontal
+    if (current[1] === prev[1] && current[1] === next[1]) {
         file = "images/body1.png";
     }
-    else if (current[1] === prev[1] && current[0] === next[0] && (current[1] > next[1])) {
-        file = "images/body4.png";
+    // Straight vertical
+    else if (current[0] === prev[0] && current[0] === next[0]) {
+        file = "images/body2.png";
     }
-    else if (current[0] === prev[0] && current[1] === next[1] && (current[0] < next[0])) {
+    // Up-to-Right OR Right-to-Up
+    else if ((prev[1] > current[1] && next[0] > current[0]) || (prev[0] > current[0] && next[1] > current[1])) {
         file = "images/body3.png";
     }
-    else if (current[1] === prev[1] && current[0] === next[0] && (current[1] < next[1])) {
+    // Up-to-Left OR Left-to-Up
+    else if ((prev[1] > current[1] && next[0] < current[0]) || (prev[0] < current[0] && next[1] > current[1])) {
         file = "images/body6.png";
     }
-    else if (current[0] === prev[0] && current[1] === next[1] && (current[0] > next[0])) {
+    // Down-to-Right OR Right-to-Down
+    else if ((prev[1] < current[1] && next[0] > current[0]) || (prev[0] > current[0] && next[1] < current[1])) {
+        file = "images/body4.png";
+    }
+    // Down-to-Left OR Left-to-Down
+    else if ((prev[1] < current[1] && next[0] < current[0]) || (prev[0] < current[0] && next[1] < current[1])) {
         file = "images/body5.png";
     }
     else {
@@ -170,17 +188,17 @@ function getTail(current, prev, next) {
 
 function generateTail() {
     let prevPos, nextPos;
-    for(let i = 1; i <= score; i++) {
+    let size = score + 1;
+    for(let i = 1; i <= size; i++) {
 
         currentPos = previousDir.at(-i);
         nextPos = previousDir.at(-i - 1);
 
         if(i === 1) {
             prevPos = [movementX, movementY];
-            console.log(prevPos, currentPos, nextPos);
         }
 
-        if (i < score) {
+        if (i < size) {
             renderSprite(getImage(currentPos, prevPos, nextPos), currentPos[0], currentPos[1], tileSize, tileSize)
         }
         else {
@@ -223,6 +241,20 @@ function renderPlayer() {
     renderSprite(file, movementX, movementY, tileSize, tileSize);
 }
 
+function renderInstruction() {
+    ctx.fillStyle = "rgb(156, 156, 156, 0.9)";
+    ctx.fillRect(300, 200, canvas.width / 2, canvas.height / 2);
+        // Text objects
+    ctx.textAlign = "center";
+
+    ctx.font = "40px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("SNAKE GAME", 600, 275);
+
+    ctx.font = "20px Arial";
+    ctx.fillText("Press Arrow keys or WASD to start", 600, 325);
+}
+
 function gameLoop() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -251,6 +283,10 @@ function gameLoop() {
 
     scoreText.textContent = "score: " + score;
 
+    if (direction === "none") {
+        renderInstruction();
+    }
+
     // Loop forever
     if(isDead() == false) {
         requestAnimationFrame(gameLoop);
@@ -270,12 +306,5 @@ function gameLoop() {
         ctx.fillText("Your score was: " + score, 600, 325);
 
         ctx.fillText("Press R to restart" , 600, 400);
-        
-        if (event.key === "r") {
-            movementX = 100;
-            movementY = 100;
-            score = 0;
-            dead = false;
-        }
     }
 }
