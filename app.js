@@ -19,22 +19,22 @@ let score = 0;
 document.addEventListener('keydown', function(event) {
     // Go Left
     if((event.key === "a" || event.key === "ArrowLeft") && direction != "right") {
-        nextDirQue.push("left");
+        if (!nextDirQue.includes("left")) { nextDirQue.push("left"); }
     }
 
     // Go Down
     if((event.key === "s" || event.key === "ArrowDown") && direction != "up") {
-        nextDirQue.push("down");
+        if (!nextDirQue.includes("down")) { nextDirQue.push("down"); }
     }
 
     // Go Right
     if((event.key === "d" || event.key === "ArrowRight") && direction != "left") {
-        nextDirQue.push("right");
+        if (!nextDirQue.includes("right")) { nextDirQue.push("right"); }
     }
 
     // Go Up
     if((event.key === "w" || event.key === "ArrowUp") && direction != "down") {
-        nextDirQue.push("up");
+        if (!nextDirQue.includes("up")) { nextDirQue.push("up"); }
     }
 
     // Player Death
@@ -263,7 +263,7 @@ function gameLoop() {
 
     // Renter Cureent Apple
     coords = collected ? spawnAppleCords() : coords;
-    renderSprite("images/apple.png", coords[0], coords[1], tileSize, tileSize)
+    renderSprite("images/apple.svg", coords[0], coords[1], tileSize, tileSize)
 
     // Get the tail
     generateTail();
