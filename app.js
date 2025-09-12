@@ -7,40 +7,41 @@ let movementX = 100;
 let movementY = 350;
 let speed = 5;
 let direction = "none";
-let nextDirection = "none";
 let tileSize = 50; 
 let collected = false;
 let lastSpace = [200, 350];
 let coords = [800, 350];
-let previousDir = [];
-let score = 0;
+let previousDir = [[], [movementX - tileSize, movementY]];
+let nextDirQue = [];
+let score = 2;
 
 // Get Direction
 document.addEventListener('keydown', function(event) {
     // Go Left
     if((event.key === "a" || event.key === "ArrowLeft") && direction != "right") {
-        nextDirection = "left";
+        nextDirQue.push("left");
     }
 
     // Go Down
     if((event.key === "s" || event.key === "ArrowDown") && direction != "up") {
-        nextDirection = "down";
+        nextDirQue.push("down");
     }
 
     // Go Right
     if((event.key === "d" || event.key === "ArrowRight") && direction != "left") {
-        nextDirection = "right";
+        nextDirQue.push("right");
     }
 
     // Go Up
     if((event.key === "w" || event.key === "ArrowUp") && direction != "down") {
-        nextDirection = "up";
+        nextDirQue.push("up");
     }
 });
 
 function movement() {
     if(Number.isInteger(movementX / tileSize) && Number.isInteger(movementY / tileSize)) {
-        direction = nextDirection;
+        let tempDir = nextDirQue.shift()
+        direction = tempDir ? tempDir : direction;
     }
 
     switch(direction) {
@@ -70,15 +71,15 @@ function isDead() {
         dead = true;
     }  
 
-    deadList = deadZone();
-    for (let i = 0; i < deadList.length; i++) {
-        let x = Math.round(movementX / tileSize) * tileSize;
-        let y = Math.round(movementY / tileSize) * tileSize;
+    // deadList = deadZone();
+    // for (let i = 0; i < deadList.length; i++) {
+    //     let x = Math.round(movementX / tileSize) * tileSize;
+    //     let y = Math.round(movementY / tileSize) * tileSize;
 
-        if(x === deadList[i][0] && y === deadList[i][1]) {
-            dead = true;
-        }
-    }
+    //     if(x === deadList[i][0] && y === deadList[i][1]) {
+    //         dead = true;
+    //     }
+    // }
 
     return dead;
 }
@@ -122,15 +123,70 @@ function storeDir() {
     }
 }
 
+function getImage(current, prev, next) {
+    let file;
+    // console.log(current, prev, next);
+    if(current[0] === prev[0] && current[0] === next[0]) {
+        file = "images/body2.png";
+    }
+    else if (current[1] === prev[1] && current[1] === next[1]) {
+        file = "images/body1.png";
+    }
+    else if (current[1] === prev[1] && current[0] === next[0] && (current[1] > next[1])) {
+        file = "images/body4.png";
+    }
+    else if (current[0] === prev[0] && current[1] === next[1] && (current[0] < next[0])) {
+        file = "images/body3.png";
+    }
+    else if (current[1] === prev[1] && current[0] === next[0] && (current[1] < next[1])) {
+        file = "images/body6.png";
+    }
+    else if (current[0] === prev[0] && current[1] === next[1] && (current[0] > next[0])) {
+        file = "images/body5.png";
+    }
+    else {
+        file = "images/body1.png";
+    }
+    return file;
+}
+
+function getTail(current, prev, next) {
+    let file;
+    if(current[0] === prev[0] && current[0] === next[0] && next[1] < current[1]) {
+        file = "images/tail4.png";
+    }
+    else if (current[1] === prev[1] && current[1] === next[1] && next[0] < current[0]) {
+        file = "images/tail1.png";
+    }
+    else if (current[1] === prev[1] && current[1] === next[1] && next[0] > current[0]) {
+        file = "images/tail3.png";
+    }
+    else {
+        file = "images/tail2.png";
+    }
+
+    return file;
+}
+
 function generateTail() {
-    for(let i = 1; i < score + 1; i++) {
-        let xVariance = 0;
-        let yVariance = 0;
+    let prevPos, nextPos;
+    for(let i = 1; i <= score; i++) {
 
-        lastDir = previousDir.at(-i);
-        ctx.fillStyle = "navy";
+        currentPos = previousDir.at(-i);
+        nextPos = previousDir.at(-i - 1);
 
-        ctx.fillRect(lastDir[0], lastDir[1], tileSize, tileSize);
+        if(i === 1) {
+            prevPos = [movementX, movementY];
+            console.log(prevPos, currentPos, nextPos);
+        }
+
+        if (i < score) {
+            renderSprite(getImage(currentPos, prevPos, nextPos), currentPos[0], currentPos[1], tileSize, tileSize)
+        }
+        else {
+            renderSprite(getTail(currentPos, prevPos, nextPos), currentPos[0], currentPos[1], tileSize, tileSize);
+        }
+        prevPos = currentPos;
     }
 }
 
@@ -143,16 +199,28 @@ function deadZone() {
     return previousDir.slice(-score, -1);
 }
 
-function setSpeed() {
-    // if(score < 20) {
-    //     speed = 5;
-    // } 
-    // else if(score < 40) {
-    //     speed = 10;
-    // }
-    // else if(score < 60) {
-    //     speed = 15;
-    // }
+function renderSprite(file, posX, posY, sizeX, sizeY) {
+    const sprite = new Image();
+    sprite.src = file;
+    ctx.drawImage(sprite, posX, posY, sizeX, sizeY);
+}
+function renderPlayer() {
+    let file = null;
+    switch(direction) {
+        case "left":
+            file = "images/head3.png";
+            break;
+        case "up":
+            file = "images/head2.png";
+            break;
+        case "down":
+            file = "images/head4.png";
+            break;
+        default:
+            file = "images/head1.png";
+            break;
+    }
+    renderSprite(file, movementX, movementY, tileSize, tileSize);
 }
 
 function gameLoop() {
@@ -163,17 +231,14 @@ function gameLoop() {
 
     // Renter Cureent Apple
     coords = collected ? spawnAppleCords() : coords;
-    ctx.fillStyle = "#e83b3b";
-    ctx.fillRect(coords[0], coords[1], tileSize, tileSize);
+    renderSprite("images/apple.png", coords[0], coords[1], tileSize, tileSize)
 
-    // Player
-    movement();
-    ctx.fillStyle = "navy";
-    ctx.fillRect(movementX, movementY, tileSize, tileSize);
     // Get the tail
     generateTail();
 
-    setSpeed();
+    // Player
+    movement();
+    renderPlayer();
 
     // Check if apple collected
     if(movementX === coords[0] && movementY === coords[1]) {
