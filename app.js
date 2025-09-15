@@ -118,7 +118,7 @@ function spawnAppleCords() {
 
     deadList = deadZone();
     for (let i = 0; i < deadList.length; i++) {
-        if(randX === deadList[i][0] && randY === deadList[i][1]) {
+        if(randX * tileSize === deadList[i][0] && randY * tileSize === deadList[i][1]) {
             return spawnAppleCords();
         }
     }
@@ -170,17 +170,17 @@ function getImage(current, prev, next) {
 
 function getTail(current, prev, next) {
     let file;
-    if(current[0] === prev[0] && current[0] === next[0] && next[1] < current[1]) {
-        file = "images/tail4.png";
-    }
-    else if (current[1] === prev[1] && current[1] === next[1] && next[0] < current[0]) {
+    if(current[1] === prev[1] && current[0] < prev[0]) {
         file = "images/tail1.png";
     }
-    else if (current[1] === prev[1] && current[1] === next[1] && next[0] > current[0]) {
+    else if (current[0] === prev[0] && current[1] > prev[1]) {
+        file = "images/tail2.png";
+    }
+    else if (current[1] === prev[1] && current[0] > prev[0]) {
         file = "images/tail3.png";
     }
-    else {
-        file = "images/tail2.png";
+    else if (current[0] === prev[0] && current[1] < prev[1]) {
+        file = "images/tail4.png";
     }
 
     return file;
